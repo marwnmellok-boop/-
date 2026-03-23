@@ -3,71 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نادي تاريشت - النسخة الموسيقية</title>
+    <title>نادي تاريشت - فيديو الميراث</title>
     <style>
         :root {
             --primary: #1e3c72;
             --accent: #ffd700;
-            --bg: #ffffff;
+            --white: #ffffff;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
+        body, html {
+            height: 100%;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
+            background-color: var(--white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .card {
             background: #fff;
             padding: 25px;
             border-radius: 25px;
-            box-shadow: 0 10px 50px rgba(0,0,0,0.08);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
             border: 1px solid #f0f0f0;
-            z-index: 10;
         }
 
-        .main-avatar {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            border: 3px solid var(--primary);
-            padding: 3px;
-            background: #fff;
+        /* تنسيق الفيديو */
+        .video-container {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            aspect-ratio: 9/16; /* ليتناسب مع فيديوهات Shorts */
+            background: #000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .main-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
 
         .char-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin: 20px 0;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .char-item {
             cursor: pointer;
-            filter: grayscale(100%);
+            padding: 8px;
+            border-radius: 12px;
+            border: 2px solid transparent;
             transition: 0.3s;
         }
 
-        .char-item.active { filter: grayscale(0%); transform: scale(1.1); }
-        .char-item img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #eee; }
-        .char-item span { font-size: 11px; display: block; color: #666; margin-top: 4px; }
+        .char-item.active { border-color: var(--primary); background: #f0f4ff; }
+        .char-item img { width: 45px; height: 45px; border-radius: 50%; }
+        .char-item span { font-size: 11px; display: block; margin-top: 5px; }
 
         input, textarea {
             width: 100%;
             padding: 12px;
             margin-bottom: 12px;
-            border: 1px solid #eee;
+            border: 1px solid #ddd;
             border-radius: 10px;
             box-sizing: border-box;
             background: #fafafa;
@@ -82,125 +87,111 @@
             width: 100%;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.2);
+            transition: 0.3s;
         }
 
-        button:disabled { background: #ccc; box-shadow: none; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
 
-        #block-msg { color: #d9534f; font-size: 13px; display: none; margin-top: 10px; font-weight: bold; }
-
-        /* أيقونة التحكم بالصوت */
-        .audio-control {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            cursor: pointer;
-            font-size: 24px;
-        }
+        #block-msg { color: red; font-size: 12px; display: none; margin-top: 10px; font-weight: bold; }
+        .tap-hint { position: fixed; bottom: 15px; font-size: 12px; color: #aaa; }
     </style>
 </head>
-<body>
-
-    <audio id="bgMusic" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-    </audio>
-    
-    <audio id="clickSound"><source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-    <audio id="whistleSound"><source src="https://assets.mixkit.co/active_storage/sfx/2051/2051-preview.mp3"></audio>
-
-    <div class="audio-control" onclick="toggleMusic()">🎵</div>
+<body onclick="welcomeVoice()">
 
     <div class="card">
-        <div class="main-avatar" id="avatar-view">
-            <img src="https://cdn-icons-png.flaticon.com/512/53/53283.png">
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/inhEapj87R8?autoplay=0&rel=0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>
         </div>
 
-        <h3 style="color: var(--primary); margin: 0;">نادي تاريشت</h3>
+        <h3 style="color: var(--primary); margin: 0 0 15px 0;">تواصل مع فريق تاريشت</h3>
         
         <div class="char-grid">
-            <div class="char-item active" onclick="selectChar(this, 'الفريق', 'https://cdn-icons-png.flaticon.com/512/53/53283.png')">
+            <div class="char-item active" onclick="selChar(this, 'شعار الفريق', 'https://cdn-icons-png.flaticon.com/512/53/53283.png')">
                 <img src="https://cdn-icons-png.flaticon.com/512/53/53283.png"><span>الفريق</span>
             </div>
-            <div class="char-item" onclick="selectChar(this, 'ميسي', 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png')">
+            <div class="char-item" onclick="selChar(this, 'ميسي', 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png')">
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"><span>ميسي</span>
             </div>
-            <div class="char-item" onclick="selectChar(this, 'رونالدو', 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png')">
+            <div class="char-item" onclick="selChar(this, 'رونالدو', 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png')">
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png"><span>رونالدو</span>
             </div>
-            <div class="char-item" onclick="selectChar(this, 'نيمار', 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png')">
+            <div class="char-item" onclick="selChar(this, 'نيمار', 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png')">
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135789.png"><span>نيمار</span>
             </div>
-            <div class="char-item" onclick="selectChar(this, 'مبابي', 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png')">
+            <div class="char-item" onclick="selChar(this, 'مبابي', 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png')">
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135823.png"><span>مبابي</span>
             </div>
-            <div class="char-item" onclick="selectChar(this, 'هالاند', 'https://cdn-icons-png.flaticon.com/512/4140/4140047.png')">
+            <div class="char-item" onclick="selChar(this, 'هالاند', 'https://cdn-icons-png.flaticon.com/512/4140/4140047.png')">
                 <img src="https://cdn-icons-png.flaticon.com/512/4140/4140047.png"><span>هالاند</span>
             </div>
         </div>
 
-        <input type="text" id="username" placeholder="اسمك الكامل">
-        <textarea id="message" rows="3" placeholder="اكتب رسالتك للإدارة..."></textarea>
+        <input type="text" id="name" placeholder="الاسم الكامل">
+        <textarea id="msg" rows="2" placeholder="رسالتك للإدارة..."></textarea>
         
-        <button id="btnSend" onclick="sendAction()">إرسال الآن ⚽</button>
-        <div id="block-msg">⚠️ تم حظرك مؤقتاً! كثرة الإرسال تضر الفريق.</div>
+        <button id="sendBtn" onclick="handleSend()">إرسال الرسالة ⚽</button>
+        <div id="block-msg">⚠️ تم حظرك مؤقتاً! يرجى المحاولة لاحقاً.</div>
     </div>
 
+    <div class="tap-hint">انقر في أي مكان لتفعيل الترحيب الصوتي 🔊</div>
+
     <script>
-        const bgMusic = document.getElementById('bgMusic');
-        const clickSound = document.getElementById('clickSound');
-        const whistle = document.getElementById('whistleSound');
-        let attempts = 0;
-        let selectedName = "شعار الفريق";
+        let char = "شعار الفريق";
+        let sendCount = 0;
+        let hasWelcomed = false;
 
-        // تشغيل الموسيقى عند أول لمسة للشاشة (ضروري للمتصفحات)
-        document.body.addEventListener('click', () => { bgMusic.play(); }, {once: true});
-
-        function toggleMusic() {
-            if (bgMusic.paused) bgMusic.play();
-            else bgMusic.pause();
+        function welcomeVoice() {
+            if (!hasWelcomed) {
+                const speech = new SpeechSynthesisUtterance("مرحباً بك في تاريشت");
+                speech.lang = "ar-SA";
+                window.speechSynthesis.speak(speech);
+                hasWelcomed = true;
+                document.querySelector('.tap-hint').style.display = 'none';
+            }
         }
 
-        function selectChar(el, name, img) {
-            clickSound.play(); // صوت نقرة
+        function selChar(el, name) {
             document.querySelectorAll('.char-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
-            document.querySelector('#avatar-view img').src = img;
-            selectedName = name;
+            char = name;
         }
 
-        function sendAction() {
-            const user = document.getElementById('username').value;
-            const msg = document.getElementById('message').value;
-            const btn = document.getElementById('btnSend');
+        function handleSend() {
+            const name = document.getElementById('name').value;
+            const msg = document.getElementById('msg').value;
+            const btn = document.getElementById('sendBtn');
+            const blockMsg = document.getElementById('block-msg');
 
-            if(!user || !msg) return alert("الرجاء إدخال البيانات");
+            if(!name || !msg) return alert("يرجى ملء كافة البيانات");
 
-            attempts++;
-            whistle.play(); // صوت صافرة عند الإرسال
+            sendCount++;
 
-            if (attempts >= 5) {
+            if (sendCount >= 5) {
                 btn.style.display = "none";
-                document.getElementById('block-msg').style.display = "block";
+                blockMsg.style.display = "block";
                 setTimeout(() => {
-                    attempts = 0;
+                    sendCount = 0;
                     btn.style.display = "block";
-                    document.getElementById('block-msg').style.display = "none";
+                    blockMsg.style.display = "none";
                 }, 3600000); // حظر لمدة ساعة
                 return;
             }
 
             // فتح البريد
-            window.location.href = `mailto:marwnmellok@gmail.com?subject=رسالة من ${user}&body=اللاعب: ${user}%0Aالشخصية: ${selectedName}%0Aالرسالة: ${msg}`;
+            window.location.href = `mailto:marwnmellok@gmail.com?subject=تواصل من ${name}&body=المرسل: ${name}%0Aالشخصية: ${char}%0Aالرسالة: ${msg}`;
 
             // عد تنازلي 3 ثواني
-            let count = 3;
+            let timeLeft = 3;
             btn.disabled = true;
             const timer = setInterval(() => {
-                btn.innerText = `انتظر ${count}...`;
-                count--;
-                if (count < 0) {
+                btn.innerText = `انتظر ${timeLeft}...`;
+                timeLeft--;
+                if (timeLeft < 0) {
                     clearInterval(timer);
-                    btn.innerText = "إرسال الآن ⚽";
+                    btn.innerText = "إرسال الرسالة ⚽";
                     btn.disabled = false;
                 }
             }, 1000);
