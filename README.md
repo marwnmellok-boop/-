@@ -3,246 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نادي تاريشت - النسخة الاجتماعية المتطورة</title>
+    <title>نادي تاريشت - النظام الاحترافي المتكامل</title>
     <style>
         :root {
             --primary: #1e3c72;
             --bt-blue: #0082fc;
-            --bg-color: #f8f9fa;
+            --bg-color: #f0f2f5;
             --card-bg: #ffffff;
             --text-color: #1a1a1a;
-            --danger: #e74c3c;
-        }
-
-        .dark-mode {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
+            --sent-msg: #dcf8c6;
+            --danger: #ff4757;
         }
 
         body, html {
             height: 100%; margin: 0; display: flex; justify-content: center;
             align-items: center; background-color: var(--bg-color);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            color: var(--text-color); transition: 0.4s;
+            font-family: 'Segoe UI', Tahoma, sans-serif; color: var(--text-color);
         }
 
-        /* المساعد الآلي - أعلى اليسار */
-        .ai-bot-btn {
-            position: fixed; top: 20px; left: 20px;
-            background: linear-gradient(135deg, var(--primary), #4a90e2);
-            color: white; width: 55px; height: 55px;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 25px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            z-index: 3000; animation: pulse 2s infinite;
+        /* شاشة الترحيب */
+        #welcomeOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(45deg, var(--primary), #2a5298);
+            color: white; z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; transition: 1s ease;
         }
 
-        /* شبكة الشخصيات الموسعة */
-        .char-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 10px; margin: 15px 0; max-height: 200px; overflow-y: auto;
-            padding: 10px; border: 1px solid rgba(0,0,0,0.1); border-radius: 15px;
-        }
-        .char-item { cursor: pointer; padding: 5px; border-radius: 10px; transition: 0.2s; text-align: center; }
-        .char-item.active { background: rgba(30, 60, 114, 0.15); border: 1px solid var(--primary); }
-        .char-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
-        .char-item span { font-size: 10px; display: block; margin-top: 3px; }
-
+        /* البطاقة الرئيسية */
         .card {
-            background: var(--card-bg); padding: 20px; border-radius: 25px;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.1); width: 90%;
-            max-width: 400px; position: relative;
+            background: var(--card-bg); padding: 25px; border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px;
+            text-align: center; border: 1px solid #ddd;
         }
 
-        /* أيقونة البلوتوث - أسفل اليمين */
-        .bt-hub-btn {
-            position: fixed; bottom: 30px; right: 30px;
-            background: var(--bt-blue); color: white; width: 65px; height: 65px;
+        /* أيقونة البلوتوث العائمة */
+        .bt-float-btn {
+            position: fixed; bottom: 25px; right: 25px;
+            background: var(--bt-blue); color: white; width: 60px; height: 60px;
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 28px; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 130, 252, 0.4);
-            z-index: 2001;
+            font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000; transition: 0.3s;
         }
 
-        /* نافذة الشات المتقدمة */
+        /* نافذة الشات */
         .bt-window {
-            display: none; position: fixed; bottom: 110px; right: 30px;
-            width: 350px; height: 550px; background: var(--card-bg); border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-direction: column; z-index: 2000; overflow: hidden;
+            display: none; position: fixed; bottom: 95px; right: 25px;
+            width: 340px; height: 500px; background: var(--card-bg); border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); flex-direction: column; z-index: 2000; overflow: hidden;
         }
-        .bt-header { background: var(--bt-blue); color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        
-        .chat-active { flex: 1; display: none; flex-direction: column; background: #f0f2f5; }
-        .msg-container { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 8px 12px; border-radius: 15px; font-size: 14px; max-width: 80%; position: relative; }
-        .msg.sent { background: var(--bt-blue); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg.received { background: white; color: black; align-self: flex-start; border-bottom-left-radius: 2px; }
 
-        /* أدوات الشات (صور، صوت، حظر) */
-        .chat-tools { display: flex; gap: 10px; padding: 10px; background: white; border-top: 1px solid #eee; align-items: center; }
-        .tool-btn { cursor: pointer; font-size: 18px; color: #555; transition: 0.2s; }
-        .tool-btn:hover { color: var(--bt-blue); }
-        .block-btn { color: var(--danger); font-size: 12px; font-weight: bold; cursor: pointer; }
+        .bt-header { 
+            background: var(--bt-blue); color: white; padding: 12px; 
+            display: flex; justify-content: space-between; align-items: center; font-weight: bold;
+        }
+
+        .chat-area { flex: 1; display: none; flex-direction: column; background: #e5ddd5; position: relative; }
+        .msg-container { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px; position: relative; }
+        .msg.sent { background: var(--sent-msg); align-self: flex-end; }
+        .msg.received { background: white; align-self: flex-start; }
+
+        /* شريط الأدوات */
+        .chat-tools { display: flex; gap: 10px; padding: 10px; background: #f0f0f0; align-items: center; border-top: 1px solid #ddd; }
+        .tool-btn { cursor: pointer; font-size: 18px; color: #555; }
+        .recording { color: var(--danger); animation: blink 1s infinite; }
+
+        /* قائمة الإيموجي */
+        .emoji-picker {
+            display: none; position: absolute; bottom: 60px; left: 10px;
+            background: white; border: 1px solid #ddd; padding: 10px;
+            border-radius: 10px; grid-template-columns: repeat(5, 1fr); gap: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
 
         .main-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
-<body onclick="initVoice()">
+<body onclick="startAudioContext()">
 
-    <div class="ai-bot-btn" onclick="toggleAI()">🤖</div>
+    <div id="welcomeOverlay">
+        <h1>نادي تاريشت</h1>
+        <p>مرحباً بك في الجيل الجديد من التواصل</p>
+        <button class="main-btn" style="width: 180px; background: white; color: var(--primary);" onclick="closeWelcome()">دخول</button>
+    </div>
 
-    <div class="bt-hub-btn" onclick="toggleBtWindow()">📡</div>
+    <div class="bt-float-btn" onclick="toggleChat()">📡</div>
 
     <div class="card">
-        <button class="main-btn" style="border-radius: 50px; margin-bottom: 10px;" onclick="sendFriendRequest()">👤 طلب صداقة مع الفريق</button>
-        
-        <div class="char-grid" id="charGrid">
-            <div class="char-item active" onclick="selChar(this, 'الفريق')"><img src="https://cdn-icons-png.flaticon.com/512/53/53283.png"><span>الفريق</span></div>
-            <div class="char-item" onclick="selChar(this, 'ميسي')"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"><span>ميسي</span></div>
-            <div class="char-item" onclick="selChar(this, 'رونالدو')"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png"><span>رونالدو</span></div>
-            <div class="char-item" onclick="selChar(this, 'بنزيمة')"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135789.png"><span>بنزيمة</span></div>
-            <div class="char-item" onclick="selChar(this, 'حكيمي')"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135823.png"><span>حكيمي</span></div>
-            <div class="char-item" onclick="selChar(this, 'مبابي')"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png"><span>مبابي</span></div>
-            <div class="char-item" onclick="selChar(this, 'صلاح')"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135707.png"><span>صلاح</span></div>
-            <div class="char-item" onclick="selChar(this, 'نيمار')"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135764.png"><span>نيمار</span></div>
-        </div>
-
-        <input type="text" id="mainName" placeholder="الاسم الكامل">
-        <textarea id="mainMsg" rows="2" placeholder="رسالة سريعة..."></textarea>
-        <button class="main-btn" onclick="handleMainSend()">إرسال للإدارة</button>
+        <h3>تخصيص الهوية</h3>
+        <input type="text" id="userName" placeholder="أدخل اسمك المستعار..." style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;">
+        <button class="main-btn" onclick="saveUser()">حفظ البيانات</button>
     </div>
 
     <div class="bt-window" id="btWindow">
         <div class="bt-header">
-            <span>رادار تاريشت الذكي</span>
-            <span onclick="toggleBtWindow()" style="cursor:pointer">×</span>
+            <span id="btStatus">البلوتوث: غير متصل</span>
+            <span onclick="toggleChat()" style="cursor:pointer">×</span>
         </div>
 
-        <div id="btLogin" style="padding: 20px; text-align: center;">
-            <input type="text" id="btNameInput" placeholder="اسمك للدخول...">
-            <button class="main-btn" style="background: var(--bt-blue);" onclick="activateBt()">تفعيل الرادار</button>
+        <div id="pairingArea" style="padding: 40px 20px; text-align: center;">
+            <p>للحصول على IP افتراضي، يرجى الاقتران:</p>
+            <button class="main-btn" style="background: var(--bt-blue);" onclick="connectBluetooth()">بدء الاقتران والربط</button>
         </div>
 
-        <div id="btRadar" style="display: none; flex-direction: column; height: 100%;">
-            <div style="background:#f0f7ff; padding:10px; font-size:12px;" id="nearbyList">جاري البحث عن أجهزة...</div>
+        <div id="chatInterface" class="chat-area">
+            <div style="background:#fff3cd; padding:5px; font-size:10px; text-align:center;">إشعار: نظام الحظر مفعل لهذا الاتصال</div>
+            <div id="msgBox" class="msg-container"></div>
             
-            <div id="activeChat" class="chat-active">
-                <div style="padding: 5px 10px; background: #eee; display: flex; justify-content: space-between; align-items: center;">
-                    <span id="chatTitle" style="font-size: 12px; font-weight: bold;"></span>
-                    <span class="block-btn" onclick="blockUser()">🚫 حظر الجهاز</span>
-                </div>
-                <div id="msgBox" class="msg-container"></div>
-                
-                <div class="chat-tools">
-                    <label class="tool-btn">📷<input type="file" hidden accept="image/*" onchange="sendImage(this)"></label>
-                    <span class="tool-btn" onclick="sendVoiceNote()">🎤</span>
-                    <input type="text" id="btMsgInput" placeholder="اكتب..." style="flex:1; margin:0; padding:8px;">
-                    <span class="tool-btn" onclick="sendText()">◀</span>
-                </div>
+            <div class="emoji-picker" id="emojiPicker">
+                <span onclick="addEmoji('😊')">😊</span><span onclick="addEmoji('😂')">😂</span>
+                <span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('⚽')">⚽</span>
+                <span onclick="addEmoji('❤️')">❤️</span><span onclick="addEmoji('👍')">👍</span>
+            </div>
+
+            <div class="chat-tools">
+                <span class="tool-btn" onclick="toggleEmoji()">😀</span>
+                <label class="tool-btn">📷<input type="file" hidden accept="image/*" onchange="sendImage(this)"></label>
+                <span class="tool-btn" id="mic" onclick="handleVoice()">🎤</span>
+                <input type="text" id="msgInput" placeholder="اكتب..." style="flex:1; border:none; padding:5px; border-radius:5px;">
+                <span class="tool-btn" style="color:var(--bt-blue)" onclick="sendText()">◀</span>
+            </div>
+            <div style="text-align: center; padding: 5px; background: #eee;">
+                <span style="color:var(--danger); font-size:11px; cursor:pointer;" onclick="blockCurrentDevice()">🚫 حظر هذا الجهاز</span>
             </div>
         </div>
     </div>
 
     <script>
-        let selectedChar = "الفريق";
+        let mediaRecorder;
+        let audioChunks = [];
         let isBlocked = false;
 
-        function toggleBtWindow() {
-            const w = document.getElementById('btWindow');
-            w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
+        function closeWelcome() {
+            document.getElementById('welcomeOverlay').style.transform = 'translateY(-100%)';
+            speak("مرحباً بك في نادي تاريشت. نظام البلوتوث جاهز.");
         }
 
-        function activateBt() {
-            const name = document.getElementById('btNameInput').value;
-            if(!name) return;
-            document.getElementById('btLogin').style.display = 'none';
-            document.getElementById('btRadar').style.display = 'flex';
-            
-            // محاكاة رادار
-            setTimeout(() => {
-                document.getElementById('nearbyList').innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:8px; border-radius:10px;">
-                        <span>📱 جهاز ياسين (قريب جداً)</span>
-                        <button onclick="requestChat('ياسين')" style="background:var(--bt-blue); color:white; border:none; padding:5px 10px; border-radius:8px; cursor:pointer;">طلب مراسلة</button>
-                    </div>`;
-            }, 1500);
-        }
-
-        function requestChat(target) {
-            alert(`تم إرسال طلب مراسلة إلى ${target}...`);
-            setTimeout(() => {
-                if(confirm(`وافق ${target} على طلبك. ابدأ الدردشة الآن؟`)) {
-                    document.getElementById('nearbyList').style.display = 'none';
-                    document.getElementById('activeChat').style.display = 'flex';
-                    document.getElementById('chatTitle').innerText = "متصل مع: " + target;
-                    speak("تم الاتصال بنجاح. يمكنك إرسال الصور والصوت الآن.");
+        async function connectBluetooth() {
+            try {
+                if (navigator.bluetooth) {
+                    await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
                 }
-            }, 1500);
+                const ip = `10.0.0.${Math.floor(Math.random() * 254) + 1}`;
+                document.getElementById('btStatus').innerText = `متصل [IP: ${ip}]`;
+                document.getElementById('pairingArea').style.display = 'none';
+                document.getElementById('chatInterface').style.display = 'flex';
+                speak("تم ربط الجهاز وتخصيص عنوان أي بي افتراضي.");
+                loadChat();
+            } catch (e) {
+                alert("تم تشغيل الوضع التجريبي (لا يوجد دعم بلوتوث).");
+                document.getElementById('chatInterface').style.display = 'flex';
+                document.getElementById('pairingArea').style.display = 'none';
+            }
         }
 
         function sendText() {
-            if(isBlocked) return alert("لقد قمت بحظر هذا الجهاز!");
-            const input = document.getElementById('btMsgInput');
-            if(!input.value) return;
-            addMsg(input.value, 'sent');
-            input.value = "";
+            if(checkBlock()) return;
+            const inp = document.getElementById('msgInput');
+            if(inp.value) { appendMsg(inp.value, 'sent'); inp.value = ""; }
         }
 
         function sendImage(input) {
-            if(input.files && input.files[0]) {
-                addMsg(`<img src="${URL.createObjectURL(input.files[0])}" style="width:100px; border-radius:10px;">`, 'sent');
+            if(checkBlock()) return;
+            if(input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => appendMsg(`<img src="${e.target.result}" style="width:100%; border-radius:8px;">`, 'sent');
+                reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function sendVoiceNote() {
-            addMsg("🎤 رسالة صوتية (0:05)", 'sent');
-            speak("جاري تسجيل وإرسال الصوت عبر البلوتوث");
+        async function handleVoice() {
+            if(checkBlock()) return;
+            const mic = document.getElementById('mic');
+            if(!mediaRecorder || mediaRecorder.state === "inactive") {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/wav' });
+                    appendMsg(`<audio src="${URL.createObjectURL(blob)}" controls style="width:100%;"></audio>`, 'sent');
+                };
+                mediaRecorder.start();
+                mic.classList.add('recording');
+            } else {
+                mediaRecorder.stop();
+                mic.classList.remove('recording');
+            }
         }
 
-        function addMsg(content, type) {
+        function blockCurrentDevice() {
+            if(confirm("هل تريد حظر هذا الجهاز من المراسلة نهائياً؟")) {
+                localStorage.setItem('tariشت_blocked', 'true');
+                alert("تم حظر الجهاز.");
+                location.reload();
+            }
+        }
+
+        function checkBlock() {
+            if(localStorage.getItem('tariشت_blocked') === 'true') {
+                alert("عذراً، هذا الجهاز محظور من استخدام الشات.");
+                return true;
+            }
+            return false;
+        }
+
+        function appendMsg(content, type) {
             const box = document.getElementById('msgBox');
-            box.innerHTML += `<div class="msg ${type}">${content}</div>`;
+            const html = `<div class="msg ${type}">${content}</div>`;
+            box.innerHTML += html;
             box.scrollTop = box.scrollHeight;
+            saveChat(content, type);
         }
 
-        function blockUser() {
-            if(confirm("هل تريد حظر هذا الجهاز نهائياً؟ لن تتمكن من مراسلته مجدداً.")) {
-                isBlocked = true;
-                document.getElementById('activeChat').innerHTML = "<div style='padding:50px; text-align:center;'>تم حظر هذا المستخدم والجهاز.</div>";
-                speak("تم حظر المستخدم بنجاح.");
-            }
+        function toggleChat() {
+            const win = document.getElementById('btWindow');
+            win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
         }
 
-        function sendFriendRequest() {
-            const name = document.getElementById('mainName').value || "زائر";
-            window.location.href = `mailto:marwnmellok@gmail.com?subject=طلب صداقة&body=الاسم: ${name}`;
-            speak("تم تجهيز طلب الصداقة، يرجى إرسال الإيميل.");
+        function toggleEmoji() {
+            const p = document.getElementById('emojiPicker');
+            p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
         }
 
-        function selChar(el, name) {
-            document.querySelectorAll('.char-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            selectedChar = name;
+        function addEmoji(e) {
+            document.getElementById('msgInput').value += e;
+            toggleEmoji();
         }
 
-        function initVoice() {
-            speak("نادي تاريشت يرحب بك. رادار البلوتوث والمساعد الذكي في خدمتك.");
+        function saveChat(c, t) {
+            let h = JSON.parse(localStorage.getItem('tariشت_history')) || [];
+            h.push({c, t});
+            localStorage.setItem('tariشت_history', JSON.stringify(h));
+        }
+
+        function loadChat() {
+            let h = JSON.parse(localStorage.getItem('tariشت_history')) || [];
+            h.forEach(m => {
+                document.getElementById('msgBox').innerHTML += `<div class="msg ${m.t}">${m.c}</div>`;
+            });
         }
 
         function speak(t) {
-            window.speechSynthesis.cancel();
             const m = new SpeechSynthesisUtterance(t);
             m.lang = "ar-SA";
             window.speechSynthesis.speak(m);
         }
 
-        function toggleAI() { alert("مساعد تاريشت الذكي جاهز لمساعدتك!"); }
+        function saveUser() {
+            const n = document.getElementById('userName').value;
+            if(n) { alert("تم حفظ المستخدم: " + n); speak("أهلاً بك يا " + n); }
+        }
 
-        function handleMainSend() {
-            const n = document.getElementById('mainName').value;
-            const m = document.getElementById('mainMsg').value;
-            if(!n || !m) return alert("اكمل البيانات أولاً");
-            window.location.href = `mailto:marwnmellok@gmail.com?subject=رسالة من ${n}&body=الشخصية: ${selectedChar}%0Aالرسالة: ${m}`;
+        function startAudioContext() {
+            // لتفعيل الصوت في المتصفحات الحديثة
+            if (window.AudioContext) new AudioContext();
         }
     </script>
 </body>
