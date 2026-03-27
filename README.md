@@ -3,138 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رادار تاريشت - خريطة المحادثة اللحظية 🛰️</title>
+    <title>شات زوار تاريشت 💬</title>
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --primary: #1e3c72; --white: #ffffff; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; overflow: hidden; }
-        #map { height: 100vh; width: 100%; position: absolute; z-index: 1; }
+        :root { --primary: #1e3c72; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
         
-        /* واجهة المستخدم */
-        .radar-panel {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; width: 90%; max-width: 400px;
-            background: rgba(255, 255, 255, 0.9); padding: 20px;
-            border-radius: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); text-align: center;
-        }
+        /* واجهة الدخول */
+        #login-overlay { position: fixed; inset: 0; background: var(--primary); z-index: 2000; display: flex; align-items: center; justify-content: center; color: white; }
+        .login-box { background: white; padding: 30px; border-radius: 20px; color: #333; text-align: center; width: 300px; }
 
-        /* تصميم الأفاتار */
-        .avatar-marker {
-            background: white; border: 3px solid var(--primary);
-            border-radius: 50%; width: 50px !important; height: 50px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .avatar-marker img { width: 100%; height: 100%; border-radius: 50%; }
+        /* الهيكل الرئيسي */
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
+        main { flex: 1; display: flex; overflow: hidden; }
+        
+        /* قائمة الزوار */
+        #user-list { width: 120px; background: #fff; border-left: 1px solid #ddd; padding: 10px; overflow-y: auto; font-size: 13px; }
+        .user-online { color: green; margin-bottom: 5px; font-weight: bold; }
 
-        /* فقاعة الدردشة فوق الخريطة */
-        .chat-bubble {
-            background: var(--primary); color: white; padding: 5px 10px;
-            border-radius: 10px; font-size: 12px; font-weight: bold;
-            position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
-            white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
+        /* منطقة الرسائل */
+        #chat-area { flex: 1; display: flex; flex-direction: column; background: #e5ddd5; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { background: white; padding: 8px 12px; border-radius: 10px; max-width: 80%; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg b { display: block; font-size: 11px; color: var(--primary); margin-bottom: 3px; }
+        .msg.me { align-self: flex-end; background: #dcf8c6; }
 
-        input { width: 80%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; }
-        button { padding: 10px 20px; border-radius: 10px; border: none; background: var(--primary); color: white; cursor: pointer; }
+        /* إدخال الرسالة */
+        .input-bar { background: #f0f0f0; padding: 10px; display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="map"></div>
-
-<div class="radar-panel">
-    <div id="login">
-        <h3>رادار تاريشت 📡</h3>
-        <input type="text" id="username" placeholder="اسمك المستعار">
-        <button onclick="start()">دخول</button>
-    </div>
-    <div id="chat-box" style="display:none;">
-        <p id="my-info"></p>
-        <input type="text" id="msgInput" placeholder="اكتب رسالة للجميع...">
-        <button onclick="broadcastMsg()">نشر</button>
+<div id="login-overlay">
+    <div class="login-box">
+        <h3>نادي تاريشت</h3>
+        <p>أدخل اسمك المستعار للدخول</p>
+        <input type="text" id="username" placeholder="مثلاً: زائر_55">
+        <button onclick="enterChat()" style="width:100%; margin-top:10px;">دخول الشات</button>
     </div>
 </div>
 
+<header>رادار الزوار المتصلين 📡</header>
+
+<main>
+    <div id="user-list">
+        <b>متصل الآن:</b>
+        <div id="online-count"></div>
+    </div>
+    
+    <div id="chat-area">
+        <div id="messages"></div>
+        <div class="input-bar">
+            <input type="text" id="msgInput" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button onclick="sendMsg()">إرسال</button>
+        </div>
+    </div>
+</main>
+
 <script>
+    // إعداد Firebase (قاعدة بيانات عامة للتجربة)
     const firebaseConfig = { databaseURL: "https://tarisht-radar-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let map, myMarker, myName, myAvatar;
-    let markers = {};
+    let myName = "";
 
-    map = L.map('map', { zoomControl: false }).setView([33.5731, -7.5898], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-    function start() {
+    function enterChat() {
         myName = document.getElementById('username').value.trim();
-        if(!myName) return;
-        myAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(myName)}`;
+        if(!myName) return alert("اكتب اسماً مستعاراً");
 
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => {
-                const { latitude: lat, longitude: lng } = pos.coords;
-                updateMap(lat, lng);
-            }, null, { enableHighAccuracy: true });
+        document.getElementById('login-overlay').style.display = 'none';
 
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('chat-box').style.display = 'block';
-            document.getElementById('my-info').innerText = "أنت الآن متاح للأصدقاء كـ: " + myName;
-            
-            listen();
-        }
+        // 1. تسجيل الدخول في قائمة المتصلين
+        const statusRef = db.ref('online_status/' + myName);
+        statusRef.set({ name: myName, lastSeen: Date.now() });
+        statusRef.onDisconnect().remove();
+
+        // 2. البدء في مراقبة الزوار والرسائل
+        listenForUsers();
+        listenForMessages();
     }
 
-    function updateMap(lat, lng) {
-        if (!myMarker) {
-            myMarker = L.marker([lat, lng], {
-                icon: L.divIcon({ className: 'avatar-marker', html: `<img src="${myAvatar}">`, iconSize: [50, 50] })
-            }).addTo(map);
-            map.setView([lat, lng], 15);
-        } else {
-            myMarker.setLatLng([lat, lng]);
-        }
+    function sendMsg() {
+        const input = document.getElementById('msgInput');
+        const text = input.value.trim();
+        if(!text) return;
 
-        db.ref('players/' + myName).update({ name: myName, lat, lng, avatar: myAvatar });
-        db.ref('players/' + myName).onDisconnect().remove();
+        db.ref('chat_messages').push({
+            sender: myName,
+            text: text,
+            time: Date.now()
+        });
+        input.value = "";
     }
 
-    // إرسال رسالة تظهر فوق الأفاتار
-    function broadcastMsg() {
-        const txt = document.getElementById('msgInput').value;
-        if(!txt) return;
-        db.ref('players/' + myName).update({ lastMsg: txt });
-        document.getElementById('msgInput').value = "";
-        // تختفي الرسالة بعد 5 ثوانٍ
-        setTimeout(() => db.ref('players/' + myName + '/lastMsg').remove(), 5000);
+    function listenForMessages() {
+        db.ref('chat_messages').limitToLast(20).on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${data.sender === myName ? 'me' : ''}`;
+            msgDiv.innerHTML = `<b>${data.sender}</b> ${data.text}`;
+            const container = document.getElementById('messages');
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        });
     }
 
-    function listen() {
-        db.ref('players').on('value', snap => {
-            const players = snap.val();
-            for (let id in players) {
-                if (id === myName) continue;
-                const p = players[id];
-                
-                // إضافة الرسالة في فقاعة فوق الأفاتار إذا وجدت
-                const chatHtml = p.lastMsg ? `<div class="chat-bubble">${p.lastMsg}</div>` : '';
-                const html = `<div style="position:relative">${chatHtml}<img src="${p.avatar}"></div>`;
-
-                const icon = L.divIcon({ className: 'avatar-marker', html: html, iconSize: [50, 50] });
-
-                if (markers[id]) {
-                    markers[id].setLatLng([p.lat, p.lng]).setIcon(icon);
-                } else {
-                    markers[id] = L.marker([p.lat, p.lng], { icon }).addTo(map).bindPopup(p.name);
-                }
+    function listenForUsers() {
+        db.ref('online_status').on('value', (snapshot) => {
+            const users = snapshot.val();
+            const list = document.getElementById('online-count');
+            list.innerHTML = "";
+            let count = 0;
+            for (let id in users) {
+                count++;
+                list.innerHTML += `<div class="user-online">👤 ${users[id].name}</div>`;
             }
         });
     }
 </script>
+
 </body>
 </html>
