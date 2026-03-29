@@ -64,7 +64,6 @@
             border: 2px solid white;
         }
 
-        /* نافذة البروفايل والعرض */
         .profile-popup {
             display: none;
             position: absolute;
@@ -91,7 +90,6 @@
             border-bottom: 1px solid #f0f0f0;
         }
 
-        /* صورة الروبوت الصغيرة والدائرية */
         .robot-circle {
             width: 35px;
             height: 35px;
@@ -128,7 +126,6 @@
             font-size: 0.9rem;
         }
 
-        /* تأثير النجوم */
         .stars-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; border-radius: 15px;}
         .star { position: absolute; background: #f1c40f; width: 4px; height: 4px; border-radius: 50%; animation: twinkle 1.5s infinite; }
         @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
@@ -213,11 +210,9 @@
 </div>
 
 <script>
-    // نظام الإشعارات والصوت
     const notifSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
     window.onload = () => {
-        // إنشاء نجوم البروفايل
         const starsBox = document.getElementById('stars-box');
         for(let i=0; i<20; i++) {
             const star = document.createElement('div');
@@ -228,7 +223,6 @@
             starsBox.appendChild(star);
         }
         
-        // محاولة تشغيل الصوت عند أول لمسة للشاشة (سياسة المتصفحات)
         document.body.addEventListener('click', () => {
             if(document.getElementById('notif-badge').style.display !== 'none') {
                 notifSound.play().catch(()=>{});
@@ -250,32 +244,51 @@
         }
     }
 
-    // وظيفة قياس السرعة والتحسين
+    // وظيفة قياس سرعة الإنترنت الحقيقية
     function startSpeedTest() {
         const btn = document.getElementById('start-btn');
         const gauge = document.getElementById('gauge-body');
         const text = document.getElementById('speed-text');
         const zone = document.getElementById('gauge-zone');
+        const sysStatus = document.getElementById('sys-status');
         
         btn.disabled = true;
-        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> جاري التحسين...`;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> جاري القياس الحقيقي...`;
         zone.classList.add('scanning');
+        sysStatus.innerText = "جاري التحميل...";
+
+        // رابط صورة للاختبار (حجمها معروف تقريباً 5 ميجابايت لضمان دقة الحساب)
+        const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/4/4e/Pleiades_large.jpg?n=" + Math.random();
+        const downloadSize = 5211913; // 5.2 MB تقريباً بالبايت
         
-        // محاكاة قياس السرعة الحقيقي
-        let currentSpeed = 0;
-        const targetSpeed = (Math.random() * 60 + 30).toFixed(1);
-        
-        const interval = setInterval(() => {
-            currentSpeed += 2.5;
-            if (currentSpeed >= targetSpeed) {
-                currentSpeed = parseFloat(targetSpeed);
-                clearInterval(interval);
-                finishTest(currentSpeed);
-            }
-            text.innerText = currentSpeed.toFixed(1);
-            const deg = 45 + (Math.min(currentSpeed, 100) / 100) * 180;
+        const download = new Image();
+        const startTime = new Date().getTime();
+
+        download.onload = function () {
+            const endTime = new Date().getTime();
+            const duration = (endTime - startTime) / 1000; // الوقت بالثواني
+            const bitsLoaded = downloadSize * 8;
+            const speedBps = bitsLoaded / duration;
+            const speedKbps = speedBps / 1024;
+            const speedMbps = (speedKbps / 1024).toFixed(1);
+
+            // تحديث الواجهة بالنتيجة الحقيقية
+            text.innerText = speedMbps;
+            const deg = 45 + (Math.min(speedMbps, 100) / 100) * 180;
             gauge.style.transform = `rotate(${deg}deg)`;
-        }, 50);
+            
+            finishTest(speedMbps);
+        };
+
+        download.onerror = function () {
+            text.innerText = "Err";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-redo"></i> فشل القياس، حاول ثانية`;
+            zone.classList.remove('scanning');
+            sysStatus.innerText = "خطأ في الاتصال";
+        };
+
+        download.src = imageAddr;
     }
 
     function finishTest(speed) {
@@ -283,18 +296,17 @@
         const status = document.getElementById('sys-status');
         const zone = document.getElementById('gauge-zone');
         
-        btn.innerHTML = `<i class="fas fa-check-circle"></i> تم التحسين (Speed: ${speed} Mbps)`;
-        status.innerText = "أداء ممتاز";
+        btn.innerHTML = `<i class="fas fa-check-circle"></i> تم القياس: ${speed} Mbps`;
+        status.innerText = speed > 10 ? "أداء ممتاز" : "أداء مستقر";
         status.style.color = "var(--success-color)";
         zone.classList.remove('scanning');
         
         setTimeout(() => {
             btn.disabled = false;
             btn.innerHTML = `<i class="fas fa-rocket"></i> تحسين وزيادة السرعة الآن`;
-        }, 4000);
+        }, 5000);
     }
 
-    // تحديث البطارية
     if ('getBattery' in navigator) {
         navigator.getBattery().then(batt => {
             const update = () => {
